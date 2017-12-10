@@ -1,0 +1,12 @@
+---
+Runtime:
+  LogToStdout: true
+
+Jobs:
+  - Name: 'job1'
+    DependsOn: []
+    Run: 'true'
+
+  - Name: 'job2'
+    DependsOn: [ 'job1' ]
+    Run: 'true'
