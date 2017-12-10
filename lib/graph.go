@@ -46,5 +46,11 @@ func BuildDependencyGraph(jobs []*Job) (g dag.AcyclicGraph, err error) {
 		}
 	}
 
+	_, err = g.Root()
+	if err != nil {
+		err = errors.Wrapf(err, "couldn't compute DAG root")
+		return
+	}
+
 	return
 }

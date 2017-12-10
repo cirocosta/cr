@@ -76,7 +76,7 @@ type Job struct {
 	DependsOn []string `yaml:"DependsOn,flow"`
 }
 
-func (j Job) Name () string {
+func (j Job) Name() string {
 	return j.Id
 }
 
