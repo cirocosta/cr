@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"os"
 
 	"github.com/alexflint/go-arg"
@@ -38,21 +39,12 @@ func WalkFunc(v dag.Vertex) (err error) {
 func main() {
 	arg.MustParse(args)
 
-	_, err := lib.ConfigFromFile(args.File)
+	cfg, err := lib.ConfigFromFile(args.File)
 	must(err)
 
-	var g dag.AcyclicGraph
+	graph, err := lib.BuildDependencyGraph(cfg.Jobs)
+	must(err)
 
-	g.Add(1)
-	g.Add(2)
-	g.Connect(dag.BasicEdge(1, 2))
-
-	w := &dag.Walker{
-		Callback: WalkFunc,
-	}
-
-	w.Update(&g)
-
-	err = w.Wait()
+	err = lib.TraverseAndExecute(context.Background(), graph)
 	must(err)
 }
