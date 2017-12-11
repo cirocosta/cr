@@ -8,5 +8,9 @@ Jobs:
     DependsOn: []
 
   - Id: 'job2'
-    Run: 'echo ho'
+    Run: 'for i in $(seq 1 10); do sleep 0.2; echo xxxxxxxxxxx ; done'
+    DependsOn: [ 'job1' ]
+
+  - Id: 'job3'
+    Run: 'for i in $(seq 1 10); do sleep 0.2; echo ---------- ; done'
     DependsOn: [ 'job1' ]
