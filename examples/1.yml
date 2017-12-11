@@ -3,10 +3,10 @@ Runtime:
   LogToStdout: true
 
 Jobs:
-  - Name: 'job1'
+  - Id: 'job1'
+    Run: 'echo hey'
     DependsOn: []
-    Run: 'true'
 
-  - Name: 'job2'
+  - Id: 'job2'
+    Run: 'echo ho'
     DependsOn: [ 'job1' ]
-    Run: 'true'

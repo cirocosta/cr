@@ -42,10 +42,12 @@ func CreateExecutor(ctx context.Context) dag.WalkFunc {
 
 // TraverseAndExecute goes through the graph
 // provided and starts the execution of the jobs.
-func TraverseAndExecute(ctx context.Context, g dag.AcyclicGraph) (err error) {
+func TraverseAndExecute(ctx context.Context, g *dag.AcyclicGraph) (err error) {
 	w := &dag.Walker{
 		Callback: CreateExecutor(ctx),
 	}
+
+	w.Update(g)
 
 	err = w.Wait()
 	if err != nil {

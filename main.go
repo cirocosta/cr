@@ -2,6 +2,8 @@ package main
 
 import (
 	"context"
+	"io/ioutil"
+	"log"
 	"os"
 
 	"github.com/alexflint/go-arg"
@@ -38,6 +40,7 @@ func WalkFunc(v dag.Vertex) (err error) {
 
 func main() {
 	arg.MustParse(args)
+	log.SetOutput(ioutil.Discard)
 
 	cfg, err := lib.ConfigFromFile(args.File)
 	must(err)
@@ -45,6 +48,6 @@ func main() {
 	graph, err := lib.BuildDependencyGraph(cfg.Jobs)
 	must(err)
 
-	err = lib.TraverseAndExecute(context.Background(), graph)
+	err = lib.TraverseAndExecute(context.Background(), &graph)
 	must(err)
 }
