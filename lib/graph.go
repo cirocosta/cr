@@ -5,17 +5,28 @@ import (
 	"github.com/pkg/errors"
 )
 
+// BuildDependencyGraph creates a DAG with
+// a dumb root aiming at providing the
+// biggest possible parallelism to a series
+// of job builds.
 func BuildDependencyGraph(jobs []*Job) (g dag.AcyclicGraph, err error) {
 	var (
-		jobsMap = map[string]*Job{}
-		job     *Job
-		dep     string
+		rootJob = &Job{
+			Id: "_root",
+		}
+		jobsMap = map[string]*Job{
+			"_root": rootJob,
+		}
+		job *Job
+		dep string
 	)
 
 	if jobs == nil {
 		err = errors.Errorf("jobs can't be nil")
 		return
 	}
+
+	g.Add(rootJob)
 
 	for _, job = range jobs {
 		if job.Id == "" {
@@ -29,6 +40,7 @@ func BuildDependencyGraph(jobs []*Job) (g dag.AcyclicGraph, err error) {
 
 	for _, job = range jobs {
 		if len(job.DependsOn) == 0 {
+			g.Connect(dag.BasicEdge(rootJob, job))
 			continue
 		}
 
@@ -49,6 +61,11 @@ func BuildDependencyGraph(jobs []*Job) (g dag.AcyclicGraph, err error) {
 	_, err = g.Root()
 	if err != nil {
 		err = errors.Wrapf(err, "couldn't compute DAG root")
+		return
+	}
+
+	if len(g.Cycles()) > 0 {
+		err = errors.Errorf("graph contains cycles")
 		return
 	}
 

@@ -29,6 +29,8 @@ func TestBuildDependencyGraph(t *testing.T) {
 				},
 			},
 			expected: `
+_root
+  job1
 job1`,
 		},
 		{
@@ -42,6 +44,9 @@ job1`,
 				},
 			},
 			expected: `
+_root
+  job1
+  job2
 job1
 job2`,
 		},
@@ -59,6 +64,8 @@ job2`,
 				},
 			},
 			expected: `
+_root
+  job1
 job1
   job2
 job2`,
@@ -83,12 +90,13 @@ job2`,
 				},
 			},
 			expected: `
+_root
+  job1
 job1
   job2
   job3
 job2
-job3
-`,
+job3`,
 		},
 		{
 			desc: "three jobs with serial dependency",
@@ -110,12 +118,13 @@ job3
 				},
 			},
 			expected: `
+_root
+  job1
 job1
   job2
 job2
   job3
-job3
-`,
+job3`,
 		},
 		{
 			desc: "cyclic dependency",
