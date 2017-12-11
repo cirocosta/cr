@@ -1,26 +1,36 @@
 package lib
 
 import (
+	"bytes"
 	"context"
+	"io"
+	"os"
 
 	"github.com/hashicorp/terraform/dag"
 	"github.com/pkg/errors"
 )
 
 func Execute(ctx context.Context, j *Job) (err error) {
-	var execution = &Execution{
-		Argv: []string{
-			"/bin/bash",
-			"-c",
-			j.Run,
-		},
-	}
+	var (
+		output    bytes.Buffer
+		execution = &Execution{
+			Argv: []string{
+				"/bin/bash",
+				"-c",
+				j.Run,
+			},
+			Stdout: io.MultiWriter(&output, os.Stdout),
+			Stderr: io.MultiWriter(&output, os.Stderr),
+		}
+	)
 
 	err = execution.Run(ctx)
 	if err != nil {
 		err = errors.Wrapf(err, "command execution failed")
 		return
 	}
+
+	j.Output = output.String()
 
 	return
 }

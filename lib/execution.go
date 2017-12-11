@@ -2,7 +2,6 @@ package lib
 
 import (
 	"context"
-	"os"
 	"os/exec"
 	"syscall"
 	"time"
@@ -24,11 +23,9 @@ func (e *Execution) init(ctx context.Context) (err error) {
 	}
 
 	e.cmd = exec.CommandContext(ctx, e.Argv[0], e.Argv[1:]...)
-	e.cmd.Stdout = os.Stdout
-	e.cmd.Stderr = os.Stderr
-	// e.cmd.Stdout = &e.Output
-	// e.cmd.Stderr = &e.Output
-	//
+	e.cmd.Stdout = e.Stdout
+	e.cmd.Stderr = e.Stderr
+
 	return
 }
 

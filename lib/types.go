@@ -1,7 +1,7 @@
 package lib
 
 import (
-	"bytes"
+	"io"
 	"os/exec"
 	"time"
 )
@@ -11,7 +11,8 @@ import (
 type Execution struct {
 	Argv      []string
 	ExitCode  int
-	Output    bytes.Buffer
+	Stdout    io.Writer
+	Stderr    io.Writer
 	StartTime time.Time
 	EndTime   time.Time
 	Id        string
