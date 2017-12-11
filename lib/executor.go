@@ -12,17 +12,26 @@ import (
 
 func Execute(ctx context.Context, j *Job) (err error) {
 	var (
+		execution *Execution
 		output    bytes.Buffer
-		execution = &Execution{
-			Argv: []string{
-				"/bin/bash",
-				"-c",
-				j.Run,
-			},
-			Stdout: io.MultiWriter(&output, os.Stdout),
-			Stderr: io.MultiWriter(&output, os.Stderr),
-		}
+		stdout    io.Writer = os.Stdout
+		stderr    io.Writer = os.Stderr
 	)
+
+	if j.CaptureOutput {
+		stdout = io.MultiWriter(&output, os.Stdout)
+		stderr = io.MultiWriter(&output, os.Stderr)
+	}
+
+	execution = &Execution{
+		Argv: []string{
+			"/bin/bash",
+			"-c",
+			j.Run,
+		},
+		Stdout: stdout,
+		Stderr: stderr,
+	}
 
 	err = execution.Run(ctx)
 	if err != nil {
