@@ -1,13 +1,28 @@
 package lib
 
 import (
+	"bytes"
 	"io/ioutil"
 	"os"
+	"os/exec"
 	"time"
 
 	"github.com/pkg/errors"
 	"gopkg.in/yaml.v2"
 )
+
+// Execution represents the instantiation of a command
+// whose execution can be limited and tracked.
+type Execution struct {
+	Argv      []string
+	ExitCode  int
+	Output    bytes.Buffer
+	StartTime time.Time
+	EndTime   time.Time
+	Id        string
+
+	cmd *exec.Cmd
+}
 
 // Config aggregates all the types of cofiguration
 // that can be retrieved from a `.cr.yml` configuration

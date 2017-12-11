@@ -1,7 +1,6 @@
 package lib
 
 import (
-	"bytes"
 	"context"
 	"os/exec"
 	"syscall"
@@ -13,19 +12,6 @@ import (
 const (
 	defaultFailedExitCode int = 1
 )
-
-// Execution represents the instantiation of a command
-// whose execution can be limited and tracked.
-type Execution struct {
-	Argv      []string
-	ExitCode  int
-	Output    bytes.Buffer
-	StartTime time.Time
-	EndTime   time.Time
-	Id        string
-
-	cmd *exec.Cmd
-}
 
 // init initializes the Execution parameters that rely on
 // initialization. It also sets default parameters
@@ -43,6 +29,8 @@ func (e *Execution) init(ctx context.Context) (err error) {
 	return
 }
 
+// Run is a blocking method that executes the desired command
+// tying it to a context which, when cancelled, kills the process.
 func (e *Execution) Run(ctx context.Context) (err error) {
 	err = e.init(ctx)
 	if err != nil {

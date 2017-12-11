@@ -1,7 +1,6 @@
 package lib
 
 import (
-	"fmt"
 	"strings"
 	"testing"
 
@@ -164,10 +163,6 @@ job3`,
 			}
 
 			require.NoError(t, err)
-
-			jsonBytes, err := graph.MarshalJSON()
-			require.NoError(t, err)
-			fmt.Println(string(jsonBytes))
 
 			actual = strings.Trim(graph.String(), "\n")
 			expected = strings.Trim(tc.expected, "\n")
