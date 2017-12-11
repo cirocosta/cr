@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"io/ioutil"
 	"log"
 	"os"
@@ -16,6 +17,7 @@ var (
 	args = &lib.Runtime{
 		File:   "./.cr.yml",
 		Stdout: true,
+		Graph:  false,
 	}
 	logger = zerolog.New(os.Stdout).
 		With().
@@ -33,11 +35,6 @@ func must(err error) {
 		Msg("main execution failed")
 }
 
-func WalkFunc(v dag.Vertex) (err error) {
-	logger.Info().Interface("vertex", v).Msg("walk")
-	return
-}
-
 func main() {
 	arg.MustParse(args)
 	log.SetOutput(ioutil.Discard)
@@ -47,6 +44,12 @@ func main() {
 
 	graph, err := lib.BuildDependencyGraph(cfg.Jobs)
 	must(err)
+
+	if args.Graph {
+		dot := string(graph.Dot(&dag.DotOpts{}))
+		fmt.Println(dot)
+		os.Exit(0)
+	}
 
 	err = lib.TraverseAndExecute(context.Background(), &graph)
 	must(err)

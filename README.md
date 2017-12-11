@@ -13,6 +13,10 @@ Config:
   Timeout: '30s'
 
 Jobs:
+  # Jobs without `Run` field can be 
+  # used as as synchronization barrier
+  # as it counts as an entry in the execution
+  # graph.
   - Name: 'job1'
 
   - Name: 'job2'
