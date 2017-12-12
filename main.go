@@ -9,7 +9,6 @@ import (
 
 	"github.com/alexflint/go-arg"
 	"github.com/cirocosta/cr/lib"
-	"github.com/hashicorp/terraform/dag"
 	"github.com/rs/zerolog"
 )
 
@@ -42,15 +41,14 @@ func main() {
 	cfg, err := lib.ConfigFromFile(args.File)
 	must(err)
 
-	graph, err := lib.BuildDependencyGraph(cfg.Jobs)
+	executor, err := lib.New(&cfg)
 	must(err)
 
 	if args.Graph {
-		dot := string(graph.Dot(&dag.DotOpts{}))
-		fmt.Println(dot)
+		fmt.Println(executor.GetDotGraph())
 		os.Exit(0)
 	}
 
-	err = lib.TraverseAndExecute(context.Background(), &graph)
+	err = executor.Execute(context.Background())
 	must(err)
 }

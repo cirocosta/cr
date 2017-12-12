@@ -17,8 +17,9 @@ func BuildDependencyGraph(jobs []*Job) (g dag.AcyclicGraph, err error) {
 		jobsMap = map[string]*Job{
 			"_root": rootJob,
 		}
-		job *Job
-		dep string
+		job     *Job
+		dep     string
+		present bool
 	)
 
 	if jobs == nil {
@@ -35,6 +36,13 @@ func BuildDependencyGraph(jobs []*Job) (g dag.AcyclicGraph, err error) {
 		}
 
 		g.Add(job)
+
+		_, present = jobsMap[job.Id]
+		if present {
+			err = errors.Errorf("can't have two jobs with the same id")
+			return
+		}
+
 		jobsMap[job.Id] = job
 	}
 
