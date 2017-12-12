@@ -25,9 +25,10 @@ Jobs:
     - 'job1'
 ```
 
-```golang
-
+### Templating
 
 ```
-
+env     "arg"           -       retrieves the environment
+                                variable `arg` from the environment
+```
 

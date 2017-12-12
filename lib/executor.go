@@ -5,7 +5,6 @@ import (
 	"context"
 	"io"
 	"os"
-	"text/template"
 
 	"github.com/hashicorp/terraform/dag"
 	"github.com/pkg/errors"
@@ -66,40 +65,6 @@ func (e *Executor) Execute(ctx context.Context) (err error) {
 		err = errors.Wrapf(err, "jobs execution failed")
 		return
 	}
-
-	return
-}
-
-// RenderState encapsulates the state that can
-// be used when templating a given field.
-type RenderState struct {
-	Jobs map[string]*Job
-}
-
-// TemplateField takes a field string and a state.
-// With that it applies the state in the template and
-// generates a response.
-func TemplateField(field string, state *RenderState) (res string, err error) {
-	var (
-		tmpl   *template.Template
-		output bytes.Buffer
-	)
-
-	tmpl, err = template.New("tmpl").Parse(field)
-	if err != nil {
-		err = errors.Wrapf(err,
-			"failed to instantiate template for record '%s'",
-			field)
-		return
-	}
-
-	err = tmpl.Execute(&output, state)
-	if err != nil {
-		err = errors.Wrapf(err, "failed to execute template")
-		return
-	}
-
-	res = output.String()
 
 	return
 }

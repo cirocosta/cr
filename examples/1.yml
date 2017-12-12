@@ -4,7 +4,7 @@ Runtime:
 
 Jobs:
   - Id: 'Job1'
-    Run: 'echo hey'
+    Run: 'echo {{ env "FOO" }}'
     CaptureOutput: true
     DependsOn: []
 
