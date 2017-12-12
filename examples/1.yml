@@ -3,14 +3,15 @@ Runtime:
   LogToStdout: true
 
 Jobs:
-  - Id: 'job1'
+  - Id: 'Job1'
     Run: 'echo hey'
+    CaptureOutput: true
     DependsOn: []
 
   - Id: 'job2'
-    Run: 'for i in $(seq 1 10); do sleep 0.2; echo xxxxxxxxxxx ; done'
-    DependsOn: [ 'job1' ]
+    Run: 'for i in $(seq 1 10); do sleep 0.2; echo "{{ .Jobs.Job1.Output }}" ; done'
+    DependsOn: [ 'Job1' ]
 
   - Id: 'job3'
     Run: 'for i in $(seq 1 10); do sleep 0.2; echo ---------- ; done'
-    DependsOn: [ 'job1' ]
+    DependsOn: [ 'Job1' ]
