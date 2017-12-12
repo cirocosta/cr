@@ -31,7 +31,9 @@ func BuildDependencyGraph(jobs []*Job) (g dag.AcyclicGraph, err error) {
 
 	for _, job = range jobs {
 		if job.Id == "" {
-			err = errors.Errorf("job must have name")
+			err = errors.Errorf(
+				"job must have an Id - %+v",
+				job)
 			return
 		}
 
@@ -39,7 +41,9 @@ func BuildDependencyGraph(jobs []*Job) (g dag.AcyclicGraph, err error) {
 
 		_, present = jobsMap[job.Id]
 		if present {
-			err = errors.Errorf("can't have two jobs with the same id")
+			err = errors.Errorf(
+				"can't have two jobs with the same id - %s",
+				job.Id)
 			return
 		}
 
