@@ -25,6 +25,7 @@ func (e *Execution) init(ctx context.Context) (err error) {
 	e.cmd = exec.CommandContext(ctx, e.Argv[0], e.Argv[1:]...)
 	e.cmd.Stdout = e.Stdout
 	e.cmd.Stderr = e.Stderr
+	e.cmd.Dir = e.Directory
 
 	return
 }

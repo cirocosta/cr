@@ -71,13 +71,19 @@ func (e *Executor) Execute(ctx context.Context) (err error) {
 
 // RunJob is a method invoked for each vertex
 // in the execution graph except the root.
+// TODO Split into a job preparation step and a
+// job execution step.
 func (e *Executor) RunJob(ctx context.Context, j *Job) (err error) {
 	var (
+		renderState = &RenderState{
+			Jobs: e.jobsMap,
+		}
 		execution *Execution
 		output    bytes.Buffer
 		stdout    io.Writer = os.Stdout
 		stderr    io.Writer = os.Stderr
 		run       string
+		directory string
 	)
 
 	if j.CaptureOutput {
@@ -85,13 +91,28 @@ func (e *Executor) RunJob(ctx context.Context, j *Job) (err error) {
 		stderr = io.MultiWriter(&output, os.Stderr)
 	}
 
-	run, err = TemplateField(j.Run, &RenderState{
-		Jobs: e.jobsMap,
-	})
-	if err != nil {
-		err = errors.Wrapf(err,
-			"couldn't render run command")
+	switch j.Directory {
+	case "":
+		directory = "."
+	default:
+		directory, err = TemplateField(j.Directory, renderState)
+		if err != nil {
+			err = errors.Wrapf(err,
+				"couldn't render directory string")
+			return
+		}
+	}
+
+	switch j.Run {
+	case "":
 		return
+	default:
+		run, err = TemplateField(j.Run, renderState)
+		if err != nil {
+			err = errors.Wrapf(err,
+				"couldn't render run command")
+			return
+		}
 	}
 
 	execution = &Execution{
@@ -100,8 +121,9 @@ func (e *Executor) RunJob(ctx context.Context, j *Job) (err error) {
 			"-c",
 			run,
 		},
-		Stdout: stdout,
-		Stderr: stderr,
+		Stdout:    stdout,
+		Stderr:    stderr,
+		Directory: directory,
 	}
 
 	err = execution.Run(ctx)

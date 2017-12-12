@@ -11,6 +11,7 @@ import (
 type Execution struct {
 	Argv      []string
 	ExitCode  int
+	Directory string
 	Stdout    io.Writer
 	Stderr    io.Writer
 	StartTime time.Time
@@ -40,9 +41,22 @@ type Config struct {
 // Runtime aggragates CLI and runtime configuration
 // to be applied when running `cr`
 type Runtime struct {
-	File   string `arg:"help:path the configuration file" yaml:"File"`
-	Stdout bool   `arg:"help:log executions to stdout" yaml:"Stdout"`
-	Graph  bool   `arg:"help:output the execution graph" yaml:"Graph"`
+	// File denotes the path to the configuration file to
+	// load
+	File string `arg:"help:path the configuration file" yaml:"File"`
+
+	// Stdout indicates whether the execution logs should be pipped
+	// to stdout or not.
+	Stdout bool `arg:"help:log executions to stdout" yaml:"Stdout"`
+
+	// Graph indicates whether a dot graph should be output
+	// or not.
+	Graph bool `arg:"help:output the execution graph" yaml:"Graph"`
+
+	// Directory denotes what to used as a current working directory
+	// for the executions when a relative path is indicated in the
+	// job description.
+	Directory string `arg:"help:directory to be used as current working directory" yaml:"Directory"`
 }
 
 // Job defines a unit of execution that at some point
@@ -57,6 +71,12 @@ type Job struct {
 	// Run is a command to execute in the context
 	// of a default shell.
 	Run string `yaml:"Run"`
+
+	// Directory names the absolute or relative path
+	// to get into before executin the command.
+	// By default it takes the value "." (current working
+	// directory).
+	Directory string `yaml:"Directory"`
 
 	// Whether the output of the execution should
 	// be stored or not.
