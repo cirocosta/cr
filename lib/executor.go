@@ -9,6 +9,7 @@ import (
 
 	"github.com/hashicorp/terraform/dag"
 	"github.com/pkg/errors"
+	"github.com/rs/zerolog"
 )
 
 // Executor encapsulates the execution
@@ -16,6 +17,7 @@ import (
 type Executor struct {
 	config *Config
 	graph  *dag.AcyclicGraph
+	logger zerolog.Logger
 }
 
 // New instantiates a new Executor from
@@ -35,6 +37,11 @@ func New(cfg *Config) (e Executor, err error) {
 
 	e.config = cfg
 	e.graph = &graph
+	e.logger = zerolog.New(os.Stdout).
+		With().
+		Str("from", "executor").
+		Logger()
+
 	return
 }
 
