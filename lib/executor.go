@@ -5,6 +5,7 @@ import (
 	"context"
 	"io"
 	"os"
+	"strings"
 
 	"github.com/hashicorp/terraform/dag"
 	"github.com/pkg/errors"
@@ -103,6 +104,8 @@ func (e *Executor) RunJob(ctx context.Context, j *Job) (err error) {
 		}
 	}
 
+	j.Directory = directory
+
 	switch j.Run {
 	case "":
 		return
@@ -115,15 +118,17 @@ func (e *Executor) RunJob(ctx context.Context, j *Job) (err error) {
 		}
 	}
 
+	j.Run = run
+
 	execution = &Execution{
 		Argv: []string{
 			"/bin/bash",
 			"-c",
-			run,
+			j.Run,
 		},
 		Stdout:    stdout,
 		Stderr:    stderr,
-		Directory: directory,
+		Directory: j.Directory,
 	}
 
 	err = execution.Run(ctx)
@@ -132,7 +137,7 @@ func (e *Executor) RunJob(ctx context.Context, j *Job) (err error) {
 		return
 	}
 
-	j.Output = output.String()
+	j.Output = strings.TrimSpace(output.String())
 
 	return
 }
