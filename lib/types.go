@@ -48,6 +48,10 @@ type Runtime struct {
 	// load
 	File string `arg:"help:path the configuration file" yaml:"File"`
 
+	// LogsDirectory indicates the path to the directory where logs
+	// are sent to.
+	LogsDirectory string `arg:"help:path to the directory where logs are sent to" yaml:"LogsDirectory"`
+
 	// Stdout indicates whether the execution logs should be pipped
 	// to stdout or not.
 	Stdout bool `arg:"help:log executions to stdout" yaml:"Stdout"`
@@ -108,6 +112,10 @@ type Job struct {
 	// DependsOn lists a series of jobs that the job depends
 	// on to start its execution.
 	DependsOn []string `yaml:"DependsOn,flow"`
+
+	// LogFilepath indicates the path to the file where the logs
+	// of the job execution are sent to.
+	LogFilepath string `yaml:"LogFilepath"`
 }
 
 func (j Job) Name() string {

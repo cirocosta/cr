@@ -5,6 +5,7 @@ import (
 	"context"
 	"io"
 	"os"
+	"path"
 	"strings"
 	"time"
 
@@ -16,15 +17,18 @@ import (
 // Executor encapsulates the execution
 // context of a graph of jobs.
 type Executor struct {
-	config  *Config
-	graph   *dag.AcyclicGraph
-	logger  zerolog.Logger
-	jobsMap map[string]*Job
+	config        *Config
+	graph         *dag.AcyclicGraph
+	logger        zerolog.Logger
+	jobsMap       map[string]*Job
+	logsDirectory string
 }
 
 // New instantiates a new Executor from
 // the supplied configuration.
 func New(cfg *Config) (e Executor, err error) {
+	var finfo os.FileInfo
+
 	if cfg == nil {
 		err = errors.Errorf("cfg must be non-nill")
 		return
@@ -37,6 +41,27 @@ func New(cfg *Config) (e Executor, err error) {
 		return
 	}
 
+	if cfg.Runtime.LogsDirectory == "" {
+		err = errors.Errorf("LogsDirectory must be specified")
+		return
+	}
+
+	finfo, err = os.Stat(cfg.Runtime.LogsDirectory)
+	if err != nil {
+		err = errors.Wrapf(err,
+			"failed to look for logs directory %s",
+			cfg.Runtime.LogsDirectory)
+		return
+	}
+
+	if !finfo.IsDir() {
+		err = errors.Errorf(
+			"logs directory must be a directory %s",
+			cfg.Runtime.LogsDirectory)
+		return
+	}
+
+	e.logsDirectory = cfg.Runtime.LogsDirectory
 	e.config = cfg
 	e.graph = &graph
 	e.jobsMap = map[string]*Job{}
@@ -77,21 +102,54 @@ func (e *Executor) Execute(ctx context.Context) (err error) {
 // job execution step.
 func (e *Executor) RunJob(ctx context.Context, j *Job) (err error) {
 	var (
+		execution   *Execution
+		logFilepath string
+		logFile     *os.File
+		run         string
+		directory   string
+		output      bytes.Buffer
+
+		stdout      = []io.Writer{}
+		stderr      = []io.Writer{}
 		renderState = &RenderState{
 			Jobs: e.jobsMap,
 		}
-		execution *Execution
-		output    bytes.Buffer
-		stdout    io.Writer = os.Stdout
-		stderr    io.Writer = os.Stderr
-		run       string
-		directory string
 	)
 
 	if j.CaptureOutput {
-		stdout = io.MultiWriter(&output, os.Stdout)
-		stderr = io.MultiWriter(&output, os.Stderr)
+		stdout = append(stdout, &output)
 	}
+
+	if e.config.Runtime.Stdout {
+		stdout = append(stdout, os.Stdout)
+		stderr = append(stdout, os.Stderr)
+	}
+
+	switch j.LogFilepath {
+	case "":
+		logFilepath = path.Join(
+			e.config.Runtime.LogsDirectory,
+			j.Id)
+	default:
+		logFilepath, err = TemplateField(j.LogFilepath, renderState)
+		if err != nil {
+			err = errors.Wrapf(err,
+				"couldn't render LogFilepath string")
+			return
+		}
+	}
+
+	logFile, err = os.Create(logFilepath)
+	if err != nil {
+		err = errors.Wrapf(err,
+			"failed to create file for logging %s",
+			logFilepath)
+		return
+	}
+	defer logFile.Close()
+
+	stdout = append(stdout, logFile)
+	stderr = append(stderr, logFile)
 
 	switch j.Directory {
 	case "":
@@ -100,7 +158,7 @@ func (e *Executor) RunJob(ctx context.Context, j *Job) (err error) {
 		directory, err = TemplateField(j.Directory, renderState)
 		if err != nil {
 			err = errors.Wrapf(err,
-				"couldn't render directory string")
+				"couldn't render Directory string")
 			return
 		}
 	}
@@ -127,8 +185,8 @@ func (e *Executor) RunJob(ctx context.Context, j *Job) (err error) {
 			"-c",
 			j.Run,
 		},
-		Stdout:    stdout,
-		Stderr:    stderr,
+		Stdout:    io.MultiWriter(stdout...),
+		Stderr:    io.MultiWriter(stderr...),
 		Directory: j.Directory,
 	}
 

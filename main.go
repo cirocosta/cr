@@ -5,7 +5,9 @@ import (
 	"fmt"
 	"io/ioutil"
 	"log"
+	"math/rand"
 	"os"
+	"time"
 
 	"github.com/alexflint/go-arg"
 	"github.com/cirocosta/cr/lib"
@@ -14,9 +16,10 @@ import (
 
 var (
 	args = &lib.Runtime{
-		File:   "./.cr.yml",
-		Stdout: true,
-		Graph:  false,
+		File:          "./.cr.yml",
+		LogsDirectory: "/tmp",
+		Stdout:        false,
+		Graph:         false,
 	}
 	logger = zerolog.New(os.Stdout).
 		With().
@@ -37,6 +40,8 @@ func must(err error) {
 
 func main() {
 	arg.MustParse(args)
+
+	rand.Seed(time.Now().UnixNano())
 	log.SetOutput(ioutil.Discard)
 
 	cfg, err := lib.ConfigFromFile(args.File)
@@ -46,6 +51,8 @@ func main() {
 		ui.WriteActivity(a)
 	}
 
+	cfg.Runtime = *args
+
 	executor, err := lib.New(&cfg)
 	must(err)
 
@@ -53,6 +60,12 @@ func main() {
 		fmt.Println(executor.GetDotGraph())
 		os.Exit(0)
 	}
+
+	fmt.Printf(`
+	Starting execution.
+
+	Logs directory:	%s
+	`+"\n", cfg.Runtime.LogsDirectory)
 
 	err = executor.Execute(context.Background())
 	must(err)
