@@ -6,6 +6,7 @@ import (
 	"io"
 	"os"
 	"strings"
+	"time"
 
 	"github.com/hashicorp/terraform/dag"
 	"github.com/pkg/errors"
@@ -108,7 +109,7 @@ func (e *Executor) RunJob(ctx context.Context, j *Job) (err error) {
 
 	switch j.Run {
 	case "":
-		return
+		goto END
 	default:
 		run, err = TemplateField(j.Run, renderState)
 		if err != nil {
@@ -131,13 +132,43 @@ func (e *Executor) RunJob(ctx context.Context, j *Job) (err error) {
 		Directory: j.Directory,
 	}
 
+	if e.config.OnJobStatusChange != nil {
+		e.config.OnJobStatusChange(&Activity{
+			Type: ActivityStarted,
+			Time: time.Now(),
+			Job:  j,
+		})
+	}
+
 	err = execution.Run(ctx)
+
+	j.StartTime = &execution.StartTime
+	j.EndTime = &execution.EndTime
+
 	if err != nil {
 		err = errors.Wrapf(err, "command execution failed")
+
+		if e.config.OnJobStatusChange != nil {
+			e.config.OnJobStatusChange(&Activity{
+				Type: ActivityErrored,
+				Time: time.Now(),
+				Job:  j,
+			})
+		}
+
 		return
 	}
 
 	j.Output = strings.TrimSpace(output.String())
+
+END:
+	if e.config.OnJobStatusChange != nil {
+		e.config.OnJobStatusChange(&Activity{
+			Type: ActivitySuccess,
+			Time: time.Now(),
+			Job:  j,
+		})
+	}
 
 	return
 }

@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"os"
 	"text/tabwriter"
+	"time"
+	"sync"
 
 	"github.com/pkg/errors"
 )
@@ -20,33 +22,48 @@ const (
 
 type Activity struct {
 	Type ActivityType
+	Time time.Time
 	Job  *Job
 }
 
+var (
+	ActivityMapping = map[ActivityType]string{
+		ActivityAborted: "ABORTED",
+		ActivityStarted: "STARTED",
+		ActivityErrored: "ERRORED",
+		ActivitySuccess: "SUCCESS",
+		ActivityUnknown: "UNKNOWN",
+	}
+)
+
 type Ui struct {
 	writer *tabwriter.Writer
+	sync.Mutex
 }
 
 func NewUi() (u Ui) {
 	u.writer = new(tabwriter.Writer)
-	u.writer.Init(os.Stdout, 0, 8, 0, '\t', 0)
+	u.writer.Init(os.Stdout, 10, 8, 2, '\t', 0)
 
 	return
 }
 
-func (u Ui) WriteActivity(a *Activity) (err error) {
+func (u *Ui) WriteActivity(a *Activity) (err error) {
+	u.Lock()
+	defer u.Unlock()
+
 	switch a.Type {
 	case ActivityStarted:
 		fmt.Fprintf(u.writer, "job=%s\tstatus=%s\tstart=%s\n",
 			a.Job.Id,
-			a.Type,
-			a.Job.StartTime.String())
+			ActivityMapping[a.Type],
+			time.Now().Format("15:04:05"))
 	case ActivityErrored, ActivitySuccess, ActivityAborted:
 		fmt.Fprintf(u.writer, "job=%s\tstatus=%s\tstart=%s\telapsed=%s\n",
 			a.Job.Id,
-			a.Type,
-			a.Job.StartTime,
-			a.Job.FinishTime.Sub(a.Job.StartTime).String())
+			ActivityMapping[a.Type],
+			a.Job.StartTime.Format("15:04:05"),
+			a.Job.EndTime.Sub(*a.Job.StartTime).String())
 	default:
 		err = errors.Errorf(
 			"unknown activity type %+v", a)

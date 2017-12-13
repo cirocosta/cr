@@ -22,6 +22,7 @@ var (
 		With().
 		Str("from", "main").
 		Logger()
+	ui = lib.NewUi()
 )
 
 func must(err error) {
@@ -40,6 +41,10 @@ func main() {
 
 	cfg, err := lib.ConfigFromFile(args.File)
 	must(err)
+
+	cfg.OnJobStatusChange = func(a *lib.Activity) {
+		ui.WriteActivity(a)
+	}
 
 	executor, err := lib.New(&cfg)
 	must(err)

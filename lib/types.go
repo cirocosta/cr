@@ -16,7 +16,6 @@ type Execution struct {
 	Stderr    io.Writer
 	StartTime time.Time
 	EndTime   time.Time
-	Id        string
 
 	cmd *exec.Cmd
 }
@@ -36,6 +35,10 @@ type Config struct {
 
 	// Jobs lists the jobs to be executed.
 	Jobs []*Job `yaml:"Jobs"`
+
+	// OnJobStatusChange is a callback function to be called
+	// once per transition of job status.
+	OnJobStatusChange func(a *Activity) `yaml:"-"`
 }
 
 // Runtime aggragates CLI and runtime configuration
@@ -89,11 +92,11 @@ type Job struct {
 	// StartTime is the timestamp at the moment of
 	// the initiation of the execution of the
 	// command.
-	StartTime time.Time `yaml:"-"`
+	StartTime *time.Time `yaml:"-"`
 
-	// FinishTime is the timestamp of the end execution
+	// EndTime is the timestamp of the end execution
 	// of the command.
-	FinishTime time.Time `yaml:"-"`
+	EndTime *time.Time `yaml:"-"`
 
 	// ExitCode stores the result exit-code of the command.
 	ExitCode int `yaml:"-"`
