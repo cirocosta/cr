@@ -1,18 +1,26 @@
-hash: 65f1f9d2e7a6e6571a166af0d414c200e2fd51adba97b608caae846934eef4b2
-updated: 2017-12-10T18:47:04.803535-02:00
+hash: 2467d4283a47fc9530693771fb947c89a194ea176232ea55e518d292cca42803
+updated: 2017-12-12T22:59:30.341958-02:00
 imports:
 - name: github.com/alexflint/go-arg
   version: cef6506c97e5731da728c374ff3523e481026423
 - name: github.com/alexflint/go-scalar
   version: 45e5d6cd8605faef82fda2bacc59e734a0b6f1f0
+- name: github.com/fatih/color
+  version: 5df930a27be2502f99b292b7cc09ebad4d0891f4
 - name: github.com/hashicorp/errwrap
   version: 7554cd9344cec97297fa6649b055a8c98c2a1e55
 - name: github.com/hashicorp/go-multierror
   version: b7773ae218740a7be65057fc60b366a49b538a44
 - name: github.com/hashicorp/terraform
-  version: c729bdff437e1028f5c2282fb795059451e0b94b
+  version: 681b2e75875e2eefcbbb88fdf4380aa0cbe56d82
   subpackages:
   - dag
+- name: github.com/mattn/go-colorable
+  version: 5411d3eea5978e6cdc258b30de592b60df6aba96
+  repo: https://github.com/mattn/go-colorable
+- name: github.com/mattn/go-isatty
+  version: 57fdcb988a5c543893cc61bce354a6e24ab70022
+  repo: https://github.com/mattn/go-isatty
 - name: github.com/pkg/errors
   version: 645ef00459ed84a119197bfb8d8205042c6df63d
 - name: github.com/rs/zerolog
@@ -24,6 +32,11 @@ imports:
   subpackages:
   - assert
   - require
+- name: golang.org/x/sys
+  version: e24f485414aeafb646f6fca458b0bf869c0880a1
+  repo: https://go.googlesource.com/sys
+  subpackages:
+  - unix
 - name: gopkg.in/yaml.v2
   version: 287cf08546ab5e7e37d55a84f7ed3fd1db036de5
 testImports:

@@ -13,3 +13,5 @@ import:
   subpackages:
   - assert
   - require
+- package: github.com/fatih/color
+  version: master

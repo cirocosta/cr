@@ -1,12 +1,12 @@
 package lib
 
 import (
-	"fmt"
 	"os"
+	"sync"
 	"text/tabwriter"
 	"time"
-	"sync"
 
+	"github.com/fatih/color"
 	"github.com/pkg/errors"
 )
 
@@ -34,6 +34,13 @@ var (
 		ActivitySuccess: "SUCCESS",
 		ActivityUnknown: "UNKNOWN",
 	}
+	WriterMapping = map[ActivityType]*color.Color{
+		ActivityAborted: color.New(color.FgYellow),
+		ActivityStarted: color.New(color.FgBlue),
+		ActivityErrored: color.New(color.FgRed),
+		ActivitySuccess: color.New(color.FgGreen),
+		ActivityUnknown: color.New(color.FgCyan),
+	}
 )
 
 type Ui struct {
@@ -54,16 +61,18 @@ func (u *Ui) WriteActivity(a *Activity) (err error) {
 
 	switch a.Type {
 	case ActivityStarted:
-		fmt.Fprintf(u.writer, "job=%s\tstatus=%s\tstart=%s\n",
-			a.Job.Id,
-			ActivityMapping[a.Type],
-			time.Now().Format("15:04:05"))
+		WriterMapping[a.Type].
+			Fprintf(u.writer, "%s\tstatus=%s\tstart=%s\n",
+				a.Job.Id,
+				ActivityMapping[a.Type],
+				time.Now().Format("15:04:05"))
 	case ActivityErrored, ActivitySuccess, ActivityAborted:
-		fmt.Fprintf(u.writer, "job=%s\tstatus=%s\tstart=%s\telapsed=%s\n",
-			a.Job.Id,
-			ActivityMapping[a.Type],
-			a.Job.StartTime.Format("15:04:05"),
-			a.Job.EndTime.Sub(*a.Job.StartTime).String())
+		WriterMapping[a.Type].
+			Fprintf(u.writer, "%s\tstatus=%s\tstart=%s\telapsed=%s\n",
+				a.Job.Id,
+				ActivityMapping[a.Type],
+				a.Job.StartTime.Format("15:04:05"),
+				a.Job.EndTime.Sub(*a.Job.StartTime).String())
 	default:
 		err = errors.Errorf(
 			"unknown activity type %+v", a)
