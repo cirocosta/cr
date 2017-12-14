@@ -1,3 +1,5 @@
+VERSION	:=	$(shell cat ./VERSION)
+
 install:
 	go install -v
 
