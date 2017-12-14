@@ -14,12 +14,24 @@ import (
 	"github.com/rs/zerolog"
 )
 
+var version string = "dev"
+
+type cliArgs struct {
+	lib.Runtime
+}
+
+func (r cliArgs) Version() string {
+	return "cr - the concurrent runner - version=" + version
+}
+
 var (
-	args = &lib.Runtime{
-		File:          "./.cr.yml",
-		LogsDirectory: "/tmp",
-		Stdout:        false,
-		Graph:         false,
+	args = &cliArgs{
+		lib.Runtime{
+			File:          "./.cr.yml",
+			LogsDirectory: "/tmp",
+			Stdout:        false,
+			Graph:         false,
+		},
 	}
 	logger = zerolog.New(os.Stdout).
 		With().
@@ -51,7 +63,7 @@ func main() {
 		ui.WriteActivity(a)
 	}
 
-	cfg.Runtime = *args
+	cfg.Runtime = args.Runtime
 
 	executor, err := lib.New(&cfg)
 	must(err)
