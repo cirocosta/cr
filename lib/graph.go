@@ -70,14 +70,9 @@ func BuildDependencyGraph(jobs []*Job) (g dag.AcyclicGraph, err error) {
 		}
 	}
 
-	_, err = g.Root()
+	err = g.Validate()
 	if err != nil {
-		err = errors.Wrapf(err, "couldn't compute DAG root")
-		return
-	}
-
-	if len(g.Cycles()) > 0 {
-		err = errors.Errorf("graph contains cycles")
+		err = errors.Wrapf(err, "jobs graph is invalid")
 		return
 	}
 
