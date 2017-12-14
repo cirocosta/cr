@@ -1,0 +1,11 @@
+Jobs:
+  - Id: 'SayFoo'
+    Run: 'echo foo'
+
+  - Id: 'SayBaz'
+    Run: 'echo baz'
+    DependsOn: [ 'SayFoo' ]
+
+  - Id: 'SayCaz'
+    Run: 'echo caz'
+    DependsOn: [ 'SayFoo' ]
