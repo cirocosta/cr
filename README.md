@@ -60,3 +60,41 @@ cr --file ./examples/hello-world.yaml --graph \
 ![](./assets/hello-world.graph.png)
 
 
+### Spec
+
+
+```yaml
+---
+# Configurations that control the runtime environment.
+# These are configurations that can be specified via
+# the `cr` CLI (cli takes precedence).
+Runtime:
+  LogDirectory: '/tmp'  # base directory to use to store log files
+  Stdout: false         # whether all logs should also go to stdout     
+  Directory: './'       # default directory to be used as CWD
+
+
+# Map of environment variables to include in every job 
+# execution.
+# This can be be overriden by job-specific environments
+Env:
+  FOO: 'BAR'
+
+
+# Jobs is a list of `Job` objects.
+# Each job can have its properties templated
+# using results of other jobs, even if they
+# depend on the result of a job execution.
+Jobs: 
+  - Id: MyJob           # name of the job being executed.
+    Run: 'echo test'    # command to run
+    Directory: '/tmp'   # directory to use as cwd in the execution
+    CaptureOutput: true # whether the output of the task should be stored in `.Output` variable
+    Env:                # Variables to merge into the environment of the command
+      FOO: 'BAR'
+    DependsOn:          # List of strings specifying jobs that should be executed before this 
+      - 'AnotherJob'    # job and that must exit succesfully.
+    LogFilepath: '/log' # Path to the file where the logs of this execution should be stored.
+                        # By default they're stored under `/tmp/<NameOfTheJob>`.
+
+```
