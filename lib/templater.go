@@ -8,12 +8,6 @@ import (
 	"github.com/pkg/errors"
 )
 
-// RenderState encapsulates the state that can
-// be used when templating a given field.
-type RenderState struct {
-	Jobs map[string]*Job
-}
-
 var (
 	FuncMap = template.FuncMap{
 		"env": os.Getenv,
