@@ -2,6 +2,7 @@ package lib
 
 import (
 	"context"
+	"os"
 	"os/exec"
 	"syscall"
 	"time"
@@ -22,10 +23,16 @@ func (e *Execution) init(ctx context.Context) (err error) {
 		return
 	}
 
+	allEnv := os.Environ()
+	for k, v := range e.Env {
+		allEnv = append(allEnv, k+"="+v)
+	}
+
 	e.cmd = exec.CommandContext(ctx, e.Argv[0], e.Argv[1:]...)
 	e.cmd.Stdout = e.Stdout
 	e.cmd.Stderr = e.Stderr
 	e.cmd.Dir = e.Directory
+	e.cmd.Env = allEnv
 
 	return
 }

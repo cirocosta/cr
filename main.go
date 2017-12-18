@@ -63,8 +63,6 @@ func main() {
 		ui.WriteActivity(a)
 	}
 
-	cfg.Runtime = args.Runtime
-
 	executor, err := lib.New(&cfg)
 	must(err)
 
