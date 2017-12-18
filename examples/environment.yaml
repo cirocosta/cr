@@ -1,0 +1,18 @@
+Env:
+  WORD: 'BAZ'
+
+Jobs:
+  - Id: 'SayFoo'
+    Run: 'echo $WORD'
+    Env:
+      WORD: 'foo'
+
+  - Id: 'SayBaz'
+    Run: 'echo $WORD'
+    DependsOn: [ 'SayFoo' ]
+
+  - Id: 'SayCaz'
+    Run: 'echo $SAY'
+    Env:
+      SAY: 'CAZ'
+    DependsOn: [ 'SayFoo' ]
