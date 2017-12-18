@@ -96,18 +96,84 @@ func (e *Executor) Execute(ctx context.Context) (err error) {
 	return
 }
 
+func (e *Executor) ResolveJobDirectory(j *Job, renderState *RenderState) (res string, err error) {
+	switch j.Directory {
+	case "":
+		res = "."
+	default:
+		res, err = TemplateField(j.Directory, renderState)
+		if err != nil {
+			err = errors.Wrapf(err,
+				"couldn't render Directory string")
+			return
+		}
+	}
+
+	return
+}
+
+func (e *Executor) ResolveJobLogFilepath(j *Job, renderState *RenderState) (res string, err error) {
+	switch j.LogFilepath {
+	case "":
+		res = path.Join(
+			e.config.Runtime.LogsDirectory,
+			j.Id)
+	default:
+		res, err = TemplateField(j.LogFilepath, renderState)
+		if err != nil {
+			err = errors.Wrapf(err,
+				"couldn't render LogFilepath string")
+			return
+		}
+	}
+
+	return
+}
+
+func (e *Executor) ResolveJobRun(j *Job, renderState *RenderState) (res string, err error) {
+	switch j.Run {
+	case "":
+		res = ""
+	default:
+		res, err = TemplateField(j.Run, renderState)
+		if err != nil {
+			err = errors.Wrapf(err,
+				"couldn't render run command")
+			return
+		}
+	}
+
+	return
+}
+
+func (e *Executor) ResolveJobEnv(j *Job, renderState *RenderState) (res map[string]string, err error) {
+	res = j.Env
+
+	if len(e.config.Env) == 0 {
+		return
+	}
+
+	if len(j.Env) == 0 {
+		res = e.config.Env
+		return
+	}
+
+	for k, v := range e.config.Env {
+		res[k] = v
+	}
+
+	return
+}
+
 // RunJob is a method invoked for each vertex
 // in the execution graph except the root.
 // TODO Split into a job preparation step and a
 // job execution step.
 func (e *Executor) RunJob(ctx context.Context, j *Job) (err error) {
 	var (
-		execution   *Execution
-		logFilepath string
-		logFile     *os.File
-		run         string
-		directory   string
-		output      bytes.Buffer
+		execution *Execution
+		logFile   *os.File
+		output    bytes.Buffer
 
 		stdout      = []io.Writer{}
 		stderr      = []io.Writer{}
@@ -125,25 +191,16 @@ func (e *Executor) RunJob(ctx context.Context, j *Job) (err error) {
 		stderr = append(stdout, os.Stderr)
 	}
 
-	switch j.LogFilepath {
-	case "":
-		logFilepath = path.Join(
-			e.config.Runtime.LogsDirectory,
-			j.Id)
-	default:
-		logFilepath, err = TemplateField(j.LogFilepath, renderState)
-		if err != nil {
-			err = errors.Wrapf(err,
-				"couldn't render LogFilepath string")
-			return
-		}
+	j.LogFilepath, err = e.ResolveJobLogFilepath(j, renderState)
+	if err != nil {
+		return
 	}
 
-	logFile, err = os.Create(logFilepath)
+	logFile, err = os.Create(j.LogFilepath)
 	if err != nil {
 		err = errors.Wrapf(err,
 			"failed to create file for logging %s",
-			logFilepath)
+			j.LogFilepath)
 		return
 	}
 	defer logFile.Close()
@@ -151,43 +208,24 @@ func (e *Executor) RunJob(ctx context.Context, j *Job) (err error) {
 	stdout = append(stdout, logFile)
 	stderr = append(stderr, logFile)
 
-	switch j.Directory {
-	case "":
-		directory = "."
-	default:
-		directory, err = TemplateField(j.Directory, renderState)
-		if err != nil {
-			err = errors.Wrapf(err,
-				"couldn't render Directory string")
-			return
-		}
+	j.Directory, err = e.ResolveJobDirectory(j, renderState)
+	if err != nil {
+		return
 	}
 
-	j.Directory = directory
-
-	if len(e.config.Env) > 0 {
-		if j.Env == nil || len(j.Env) == 0 {
-			j.Env = e.config.Env
-		} else {
-			for k, v := range e.config.Env {
-				j.Env[k] = v
-			}
-		}
+	j.Env, err = e.ResolveJobEnv(j, renderState)
+	if err != nil {
+		return
 	}
 
-	switch j.Run {
-	case "":
+	j.Run, err = e.ResolveJobRun(j, renderState)
+	if err != nil {
+		return
+	}
+
+	if j.Run == "" {
 		goto END
-	default:
-		run, err = TemplateField(j.Run, renderState)
-		if err != nil {
-			err = errors.Wrapf(err,
-				"couldn't render run command")
-			return
-		}
 	}
-
-	j.Run = run
 
 	execution = &Execution{
 		Argv: []string{
