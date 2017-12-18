@@ -4,6 +4,7 @@
 
 <br/>
 
+[![Build Status](https://travis-ci.org/cirocosta/cr.svg?branch=master)](https://travis-ci.org/cirocosta/cr)
 
 ### Overview
 
