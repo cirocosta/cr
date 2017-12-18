@@ -97,6 +97,11 @@ func (e *Executor) Execute(ctx context.Context) (err error) {
 }
 
 func (e *Executor) ResolveJobDirectory(j *Job, renderState *RenderState) (res string, err error) {
+	if j == nil || renderState == nil {
+		err = errors.Errorf("job and renderState must be non-nil")
+		return
+	}
+
 	switch j.Directory {
 	case "":
 		res = "."

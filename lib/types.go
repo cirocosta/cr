@@ -21,6 +21,12 @@ type Execution struct {
 	cmd *exec.Cmd
 }
 
+// RenderState encapsulates the state that can
+// be used when templating a given field.
+type RenderState struct {
+	Jobs map[string]*Job
+}
+
 // Config aggregates all the types of cofiguration
 // that can be retrieved from a `.cr.yml` configuration
 // file.
