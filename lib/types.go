@@ -57,7 +57,7 @@ type Runtime struct {
 
 	// LogsDirectory indicates the path to the directory where logs
 	// are sent to.
-	LogsDirectory string `arg:"help:path to the directory where logs are sent to" yaml:"LogsDirectory"`
+	LogsDirectory string `arg:"--logs-directory,help:path to the directory where logs are sent to" yaml:"LogsDirectory"`
 
 	// Stdout indicates whether the execution logs should be pipped
 	// to stdout or not.

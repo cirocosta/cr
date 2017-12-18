@@ -63,6 +63,14 @@ func main() {
 		ui.WriteActivity(a)
 	}
 
+	if cfg.Runtime.LogsDirectory == "" {
+		cfg.Runtime.LogsDirectory = args.LogsDirectory
+	}
+
+	if args.Stdout {
+		cfg.Runtime.Stdout = true
+	}
+
 	executor, err := lib.New(&cfg)
 	must(err)
 
