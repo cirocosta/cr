@@ -165,6 +165,16 @@ func (e *Executor) RunJob(ctx context.Context, j *Job) (err error) {
 
 	j.Directory = directory
 
+	if len(e.config.Env) > 0 {
+		if j.Env == nil || len(j.Env) == 0 {
+			j.Env = e.config.Env
+		} else {
+			for k, v := range e.config.Env {
+				j.Env[k] = v
+			}
+		}
+	}
+
 	switch j.Run {
 	case "":
 		goto END
@@ -188,6 +198,7 @@ func (e *Executor) RunJob(ctx context.Context, j *Job) (err error) {
 		Stdout:    io.MultiWriter(stdout...),
 		Stderr:    io.MultiWriter(stderr...),
 		Directory: j.Directory,
+		Env:       j.Env,
 	}
 
 	if e.config.OnJobStatusChange != nil {

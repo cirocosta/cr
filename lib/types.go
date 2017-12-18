@@ -11,6 +11,7 @@ import (
 type Execution struct {
 	Argv      []string
 	ExitCode  int
+	Env       map[string]string
 	Directory string
 	Stdout    io.Writer
 	Stderr    io.Writer
