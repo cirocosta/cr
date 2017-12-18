@@ -118,6 +118,11 @@ func (e *Executor) ResolveJobDirectory(j *Job, renderState *RenderState) (res st
 }
 
 func (e *Executor) ResolveJobLogFilepath(j *Job, renderState *RenderState) (res string, err error) {
+	if j == nil || renderState == nil {
+		err = errors.Errorf("job and renderState must be non-nil")
+		return
+	}
+
 	switch j.LogFilepath {
 	case "":
 		res = path.Join(
@@ -136,6 +141,11 @@ func (e *Executor) ResolveJobLogFilepath(j *Job, renderState *RenderState) (res 
 }
 
 func (e *Executor) ResolveJobRun(j *Job, renderState *RenderState) (res string, err error) {
+	if j == nil || renderState == nil {
+		err = errors.Errorf("job and renderState must be non-nil")
+		return
+	}
+
 	switch j.Run {
 	case "":
 		res = ""
@@ -152,19 +162,34 @@ func (e *Executor) ResolveJobRun(j *Job, renderState *RenderState) (res string, 
 }
 
 func (e *Executor) ResolveJobEnv(j *Job, renderState *RenderState) (res map[string]string, err error) {
-	res = j.Env
+	res = map[string]string{}
 
-	if len(e.config.Env) == 0 {
+	if j == nil || renderState == nil {
+		err = errors.Errorf("job and renderState must be non-nil")
 		return
 	}
 
-	if len(j.Env) == 0 {
-		res = e.config.Env
-		return
-	}
-
+	var templateRes string
 	for k, v := range e.config.Env {
-		res[k] = v
+		templateRes, err = TemplateField(v, renderState)
+		if err != nil {
+			err = errors.Errorf(
+				"failed to template environment variable %s", k)
+			return
+		}
+
+		res[k] = templateRes
+	}
+
+	for k, v := range j.Env {
+		templateRes, err = TemplateField(v, renderState)
+		if err != nil {
+			err = errors.Errorf(
+				"failed to template environment variable %s", k)
+			return
+		}
+
+		res[k] = templateRes
 	}
 
 	return
