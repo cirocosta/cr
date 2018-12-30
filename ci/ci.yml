@@ -14,7 +14,7 @@ resources:
   type: git
   source:
     uri: https://github.com/cirocosta/cr
-    ignore_paths: ./VERSION
+    ignore_paths: [ ./VERSION ]
 
 - name: builder
   type: registry-image
