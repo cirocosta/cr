@@ -4,8 +4,7 @@ install:
 	go install -v
 
 fmt:
-	go fmt
-	cd ./lib && go fmt
+	go fmt ./...
 
 test:
 	cd ./lib && go test -v

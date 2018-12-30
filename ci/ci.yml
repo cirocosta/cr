@@ -1,0 +1,134 @@
+resource_types:
+- name: semver
+  type: registry-image
+  source:
+    repository: concourse/semver-resource
+
+resources:
+- name: repository
+  type: git
+  source:
+    uri: https://github.com/cirocosta/cr
+
+- name: builder
+  type: registry-image
+  source:
+    repository: concourse/builder
+
+- name: golang
+  type: registry-image
+  source:
+    repository: library/golang
+    tag: '1'
+
+- name: version
+  type: semver
+  source:
+    driver: git
+    initial_version: 0.0.3
+    uri: https://((github-token))@github.com/cirocosta/cr
+    branch: master
+    file: ./VERSION
+    git_user: Ciro S. Costa <cscosta@pivotal.io>
+
+- name: release
+  type: github-release
+  source:
+    owner: cirocosta
+    repository: cr
+    access_token: ((github-token))
+
+- name: docker-image
+  type: registry-image
+  source:
+    repository: cirocosta/cr
+    username: ((docker-user))
+    password: ((docker-password))
+
+
+jobs:
+- name: test
+  plan:
+  - aggregate:
+    - get: repository
+      trigger: true
+    - get: golang
+      trigger: true
+  - task: test
+    image: golang
+    config:
+      platform: linux
+      inputs:
+      - name: repository
+        path: .
+      run:
+        path: go
+        args: [ 'test', './...' ]
+
+- name: release
+  plan:
+  - aggregate:
+    - get: repository
+      passed: [ 'test' ]
+      trigger: true
+    - get: golang
+      passed: [ 'test' ]
+      trigger: true
+    - get: version
+  - task: build
+    image: golang
+    config:
+      platform: linux
+      inputs:
+      - name: repository
+        path: .
+      - name: version
+      outputs:
+      - name: artifacts
+      run:
+        path: /bin/bash
+        args:
+        - -c
+        - -e
+        - |
+          go build -o ./artifacts/cr -v -ldflags "-X github.com/cirocosta/cr.version=$(cat version/version)"
+  - put: release
+    inputs: [ version, artifacts ]
+    params:
+      name: ./version/version
+      tag: ./version/version
+      globs: [ ./artifacts/cr ]
+  - put: version
+    params:
+      pre: rc
+
+
+- name: image
+  plan:
+  - aggregate:
+    - get: repository
+      passed: [ 'test' ]
+      trigger: true
+    - get: builder
+      trigger: true
+    - get: version
+  - task: build
+    privileged: true
+    image: builder
+    config:
+      platform: linux
+      params:
+        REPOSITORY: cirocosta/cr
+      inputs:
+      - name: repository
+        path: .
+      outputs:
+      - name: image
+      run:
+        path: /bin/bash
+        args: [ '-ce', 'TAG=$(cat ./version/version) build' ]
+
+  - put: docker-image
+    inputs: [ image ]
+    params:
+      image: image/image.tar
