@@ -4,6 +4,11 @@ resource_types:
   source:
     repository: concourse/semver-resource
 
+- name: github-release
+  type: registry-image
+  source:
+    repository: concourse/github-release-resource
+
 resources:
 - name: repository
   type: git
