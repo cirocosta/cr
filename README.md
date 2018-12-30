@@ -4,7 +4,7 @@
 
 <br/>
 
-[![Build Status](https://travis-ci.org/cirocosta/cr.svg?branch=master)](https://travis-ci.org/cirocosta/cr)
+[![Build Status](https://hush-house.concourse-ci.org/api/v1/teams/main/pipelines/cr/jobs/test/badge)](https://hush-house.concourse-ci.org/teams/main/pipelines/cr)
 
 ### Overview
 
